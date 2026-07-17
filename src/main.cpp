@@ -21,6 +21,7 @@ int main(){
          
         EndDrawing();
     }
-
+    UnloadMusicStream(music);
+    CloseAudioDevice();
     CloseWindow();
 }
