@@ -39,6 +39,7 @@ int main(){
     }
     UnloadMusicStream(music);
     CloseAudioDevice();
+    UnloadTexture(texture);
     CloseWindow();
 }
 void GuiSliderMusic(Rectangle rec,Music & music,Color color){
