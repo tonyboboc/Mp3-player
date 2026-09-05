@@ -8,6 +8,7 @@
 
 //Gui function protypes
 void GuiSliderMusic(Rectangle rec,Music & music,Color color);
+void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor);
 int main(){
     //Initialize a Window
     InitWindow(SCREEN_WIDTH ,SCREEN_HEIGHT,SCREEN_TITLE);
@@ -15,6 +16,7 @@ int main(){
     InitAudioDevice();
     Music music=LoadMusicStream("../../music_folder/Radiant Emerald ： Diamond In The Sky [J81_NbpiZb4].mp3");
     PlayMusicStream(music);
+    //PauseMusicStream(music);
     //SLider rect 
     Rectangle seek_rec{50,500,300,10};
     seek_rec.x=GetScreenWidth()/2.0f-seek_rec.width/2.0f;
@@ -34,7 +36,7 @@ int main(){
         ClearBackground(DARKBLUE);
         DrawTexture(texture,tex_centerx,tex_centery,WHITE);
         GuiSliderMusic(seek_rec,music,SKYBLUE);
-         
+        GuiPlayButton(Vector2{GetScreenWidth()/2.0f,GetScreenHeight()/2.0f},music,30,WHITE,BLACK);
         EndDrawing();
     }
     UnloadMusicStream(music);
@@ -54,7 +56,7 @@ void GuiSliderMusic(Rectangle rec,Music & music,Color color){
         slider.width=dx;
         SeekMusicStream(music,dx/(rec.width/max_second));
     }else{
-        ResumeMusicStream(music);
+        //ResumeMusicStream(music);
         slider.width=(rec.width/max_second)*time_played;
     }
     //Point Slider
@@ -78,5 +80,35 @@ void GuiSliderMusic(Rectangle rec,Music & music,Color color){
     ss<<(int)max_second/60<<":";//first show minutes
     ss<<(int)max_second%60;
     DrawText(ss.str().c_str(),rec.x+rec.width+MeasureText(ss.str().c_str(),20)-15,rec.y,20,GREEN);
+
+}
+void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor){
+    //Update
+    static bool isPlayed=true;
+    bool isButtonHover =CheckCollisionPointCircle(position,GetMousePosition(),radius);
+    float point =radius/3.0f; 
+
+    if(isButtonHover&& IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        isPlayed=isPlayed ? false: true;
+    }
+
+    //Render
+    DrawCircleV(position ,radius, isButtonHover? bgColor :Fade(bgColor,0.0f));
+
+    if(isPlayed){
+        ResumeMusicStream(music);
+        //Resume Symbol
+        DrawRectangle(position.x-point,position.y-point,radius/4.0,radius/1.5,fgColor);//Left rect
+        DrawRectangle(position.x+point-(radius/4.0f),position.y-point,radius/4.0,radius/1.5,fgColor);//Left rect
+
+    }else{
+        PauseMusicStream(music);
+        DrawTriangle(
+            Vector2{position.x - point, position.y - point},
+            Vector2{position.x - point, position.y + point},
+            Vector2{position.x + point, position.y},
+            fgColor
+        );
+    }
 
 }
