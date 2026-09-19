@@ -64,6 +64,8 @@ int main(){
     UnloadMusicStream(music);
     CloseAudioDevice();
     UnloadTexture(texture);
+    UnloadTexture(next_track);
+    UnloadTexture(backtrack);
     CloseWindow();
 }
 void GuiSliderMusic(Rectangle rec,Music & music,Color color){
@@ -137,7 +139,7 @@ void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, C
 void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor,Texture texture){
     //Update
     static bool isPlayed=true;
-     isButtonHover2 =CheckCollisionPointCircle(position,GetMousePosition(),radius);
+    isButtonHover2 =CheckCollisionPointCircle(position,GetMousePosition(),radius);
     float point =radius/3.0f; 
 
     if(isButtonHover2&& IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
