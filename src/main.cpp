@@ -192,16 +192,16 @@ void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color
 }
 void DrawSongName(std::string song_name,int posx,int posy,Color txtcolor,int fontsize){
     static double elapsed;
-    static std::string scrolling_text;
+    std::string scrolling_text=song_name+"      "+song_name;
     elapsed=GetTime()-song_start;
     if(song_name.size()>20){
-        DrawText(song_name.substr(text_movement,25).c_str(),posx-MeasureText(song_name.substr(text_movement,20).c_str(),fontsize)/2,posy,fontsize,txtcolor);
+        DrawText(scrolling_text.substr(text_movement,25).c_str(),posx-MeasureText(scrolling_text.substr(text_movement,25).c_str(),fontsize)/2,posy,fontsize,txtcolor);
         if(elapsed-last_text_move>=0.3&&elapsed>3.0f){
             
             text_movement+=1;
             last_text_move=elapsed;
         }
-        if(text_movement>=song_name.size()-1-21){
+        if(text_movement>=song_name.size()+7){
             text_movement=0;
         }
 
