@@ -9,11 +9,14 @@
 bool isButtonHover;
 bool isSliderHover;
 int current_item=0;
+int text_movement=0;
+double last_text_move=0;
+double song_start=0;
 //Gui function protypes
 void GuiSliderMusic(Rectangle rec,Music & music,Color color);
 void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor);
 void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color bgColor, Color fgColor,Texture texture, std::string action);
-void DrawSongName(std::string song_name,int posx,int posy,Color);
+void DrawSongName(std::string song_name,int posx,int posy,Color txtcolor,int fontsize);
 int size;
 int main(){
     //Initialize a Window
@@ -65,7 +68,7 @@ UnloadDirectoryFiles(files);
         GuiPlayButton(Vector2{GetScreenWidth()/2.0f,GetScreenHeight()/2.0f},music[current_item],30,WHITE,BLACK);
         GuiPlayButton(Vector2{GetScreenWidth()/2.0f+180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,next_track,"next");
         GuiPlayButton(Vector2{GetScreenWidth()/2.0f-180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,backtrack,"back");
-
+        DrawSongName(songNames[current_item],GetScreenWidth()/2.0,GetScreenHeight()/2.0f+120,WHITE,24);
         GuiSliderMusic(seek_rec,music[current_item],SKYBLUE);
         EndDrawing();
     }
@@ -161,6 +164,9 @@ void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color
     if(isButtonHover2&& IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
         if(action=="next"){
             if(current_item<size-1){
+                song_start=GetTime();
+                text_movement=0;
+                last_text_move=0;
                 StopMusicStream(music[current_item]);
                 current_item++;
                 PlayMusicStream(music[current_item]);
@@ -168,6 +174,9 @@ void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color
         }
         if(action=="back"){
             if(current_item>0){
+                song_start=GetTime();
+                text_movement=0;
+                last_text_move=0;
                 StopMusicStream(music[current_item]);
                 current_item--;
                 PlayMusicStream(music[current_item]);
@@ -180,4 +189,24 @@ void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color
     DrawTexture(texture,position.x-radius/2.0f,position.y-radius/2.0f,fgColor);
    
 
+}
+void DrawSongName(std::string song_name,int posx,int posy,Color txtcolor,int fontsize){
+    static double elapsed;
+    static std::string scrolling_text;
+    elapsed=GetTime()-song_start;
+    if(song_name.size()>20){
+        DrawText(song_name.substr(text_movement,25).c_str(),posx-MeasureText(song_name.substr(text_movement,20).c_str(),fontsize)/2,posy,fontsize,txtcolor);
+        if(elapsed-last_text_move>=0.3&&elapsed>3.0f){
+            
+            text_movement+=1;
+            last_text_move=elapsed;
+        }
+        if(text_movement>=song_name.size()-1-21){
+            text_movement=0;
+        }
+
+    }
+    else{
+        DrawText(song_name.c_str(),posx-MeasureText(song_name.c_str(),fontsize)/2,posy,fontsize,txtcolor);
+    }
 }
