@@ -2,24 +2,38 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
 #define SCREEN_WIDTH 600
 #define SCREEN_HEIGHT 600
 #define SCREEN_TITLE "Raylib"
 bool isButtonHover;
 bool isSliderHover;
-bool isButtonHover2;
+int current_item=0;
 //Gui function protypes
 void GuiSliderMusic(Rectangle rec,Music & music,Color color);
 void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor);
-void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor,Texture texture);
-
+void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color bgColor, Color fgColor,Texture texture, std::string action);
+void DrawText;
+int size;
 int main(){
     //Initialize a Window
     InitWindow(SCREEN_WIDTH ,SCREEN_HEIGHT,SCREEN_TITLE);
    //Initialize Audio Device
     InitAudioDevice();
-    Music music=LoadMusicStream("../../music_folder/Radiant Emerald ： Diamond In The Sky [J81_NbpiZb4].mp3");
-    PlayMusicStream(music);
+    std::vector<Music> music;
+    std::vector<std::string> songNames;
+    FilePathList files =LoadDirectoryFilesEx("../../music_folder", ".mp3", false);
+        for (unsigned int i = 0; i < files.count; i++)
+    {
+        music.push_back(LoadMusicStream(files.paths[i]));
+
+        songNames.push_back(GetFileNameWithoutExt(files.paths[i]));
+    }
+
+UnloadDirectoryFiles(files);
+
+    size=music.size();
+    PlayMusicStream(music[current_item]);
     //PauseMusicStream(music);
     //SLider rect 
     Rectangle seek_rec{50,500,300,20};
@@ -40,33 +54,32 @@ int main(){
         float tex_centerx=GetScreenWidth()/2.0f-texture.width/2;
         float tex_centery=GetScreenHeight()/2.0-texture.height/2;
 
-        //Update Music Buffer with new MUsic Stream
-        if(isButtonHover||isSliderHover){
-            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-        }else{
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-        }
-        UpdateMusicStream(music);
+        //Update Music Buffer with new Music Stream
+        
+        UpdateMusicStream(music[current_item]);
 
 
         BeginDrawing();
         ClearBackground(DARKBLUE);
         DrawTexture(texture,tex_centerx,tex_centery,WHITE);
-        GuiPlayButton(Vector2{GetScreenWidth()/2.0f,GetScreenHeight()/2.0f},music,30,WHITE,BLACK);
-        GuiPlayButton(Vector2{GetScreenWidth()/2.0f+180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,next_track);
-        GuiPlayButton(Vector2{GetScreenWidth()/2.0f-180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,backtrack);
+        GuiPlayButton(Vector2{GetScreenWidth()/2.0f,GetScreenHeight()/2.0f},music[current_item],30,WHITE,BLACK);
+        GuiPlayButton(Vector2{GetScreenWidth()/2.0f+180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,next_track,"next");
+        GuiPlayButton(Vector2{GetScreenWidth()/2.0f-180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,backtrack,"back");
 
 
-        GuiSliderMusic(seek_rec,music,SKYBLUE);
-        DrawText("Radiant Emerald ： Diamond In The Sky",GetScreenWidth()/2.0f-MeasureText("Radiant Emerald ： Diamond In The Sky",22)/2.0f,GetScreenHeight()/2.0f+120,22,WHITE);
+        GuiSliderMusic(seek_rec,music[current_item],SKYBLUE);
+        DrawText(songNames[current_item].c_str(),GetScreenWidth()/2.0f-MeasureText("Radiant Emerald ： Diamond In The Sky",22)/2.0f,GetScreenHeight()/2.0f+120,22,WHITE);
         EndDrawing();
     }
-    UnloadMusicStream(music);
+    UnloadMusicStream(music[current_item]);
     CloseAudioDevice();
     UnloadTexture(texture);
     UnloadTexture(next_track);
     UnloadTexture(backtrack);
     CloseWindow();
+    for (Music& song : music){
+        UnloadMusicStream(song);
+    }
 }
 void GuiSliderMusic(Rectangle rec,Music & music,Color color){
     Rectangle slider=rec;
@@ -74,6 +87,9 @@ void GuiSliderMusic(Rectangle rec,Music & music,Color color){
     float time_played=GetMusicTimePlayed(music);
     float max_second=GetMusicTimeLength(music);
      isSliderHover=CheckCollisionPointRec(GetMousePosition(),rec);
+     if(isSliderHover){
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+     }
     if(isSliderHover&&IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
         float dx=GetMousePosition().x-rec.x;
         PauseMusicStream(music);
@@ -111,7 +127,9 @@ void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, C
     static bool isPlayed=true;
      isButtonHover =CheckCollisionPointCircle(position,GetMousePosition(),radius);
     float point =radius/3.0f; 
-
+    if(isButtonHover){
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    }
     if(isButtonHover&& IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
         isPlayed=isPlayed ? false: true;
     }
@@ -136,14 +154,27 @@ void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, C
     }
 
 }
-void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor,Texture texture){
+void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color bgColor, Color fgColor,Texture texture, std::string action){
     //Update
-    static bool isPlayed=true;
-    isButtonHover2 =CheckCollisionPointCircle(position,GetMousePosition(),radius);
-    float point =radius/3.0f; 
-
+    bool isButtonHover2 =CheckCollisionPointCircle(position,GetMousePosition(),radius);
+    if(isButtonHover2){
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    }
     if(isButtonHover2&& IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-        isPlayed=isPlayed ? false: true;
+        if(action=="next"){
+            if(current_item<size-1){
+                StopMusicStream(music[current_item]);
+                current_item++;
+                PlayMusicStream(music[current_item]);
+            }
+        }
+        if(action=="back"){
+            if(current_item>0){
+                StopMusicStream(music[current_item]);
+                current_item--;
+                PlayMusicStream(music[current_item]);
+            }
+        }
     }
 
     //Render
