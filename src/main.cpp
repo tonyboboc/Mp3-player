@@ -13,7 +13,7 @@ int current_item=0;
 void GuiSliderMusic(Rectangle rec,Music & music,Color color);
 void GuiPlayButton(Vector2 position,Music & music,float radius, Color bgColor, Color fgColor);
 void GuiPlayButton(Vector2 position,std::vector<Music> music,float radius, Color bgColor, Color fgColor,Texture texture, std::string action);
-void DrawText;
+void DrawSongName(std::string song_name,int posx,int posy,Color);
 int size;
 int main(){
     //Initialize a Window
@@ -66,9 +66,7 @@ UnloadDirectoryFiles(files);
         GuiPlayButton(Vector2{GetScreenWidth()/2.0f+180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,next_track,"next");
         GuiPlayButton(Vector2{GetScreenWidth()/2.0f-180,GetScreenHeight()/2.0f},music,40,WHITE,BLACK,backtrack,"back");
 
-
         GuiSliderMusic(seek_rec,music[current_item],SKYBLUE);
-        DrawText(songNames[current_item].c_str(),GetScreenWidth()/2.0f-MeasureText("Radiant Emerald ： Diamond In The Sky",22)/2.0f,GetScreenHeight()/2.0f+120,22,WHITE);
         EndDrawing();
     }
     UnloadMusicStream(music[current_item]);
